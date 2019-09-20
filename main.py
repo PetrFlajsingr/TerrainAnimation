@@ -41,7 +41,7 @@ class TerrainAnimationGLData:
         # mvp_matrix_id, mvp = create_mvp(self.shader.program, 800, 600)
         # glUniformMatrix4fv(mvp_matrix_id, 1, GL_FALSE, mvp)
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        '''glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         self.shader.use()
         self.vbo.set_slot(0)
         self.ibo.bind()
@@ -51,9 +51,9 @@ class TerrainAnimationGLData:
         self.ibo.unbind()
         self.vbo.unbind()
         self.height_bo.unbind()
-        self.shader.unuse()
+        self.shader.unuse()'''
 
-        '''glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         self.shader2.use()
         self.vbo.set_slot(0)
         self.ibo.bind()
@@ -63,7 +63,7 @@ class TerrainAnimationGLData:
         self.ibo.unbind()
         self.vbo.unbind()
         self.height_bo.unbind()
-        self.shader2.unuse()'''
+        self.shader2.unuse()
 
 
 class AnimationSettings:
@@ -71,6 +71,7 @@ class AnimationSettings:
         self.speed = 0.1
         self.z_offset = 0
         self.map_config = GenerationConfig()
+        self.generator_type = 'perlin'
 
     def step_position(self):
         self.z_offset -= self.speed
@@ -93,6 +94,10 @@ def main():
     gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
 
     settings = AnimationSettings()
+    settings.map_config.shape = (30, 30)
+    settings.map_config.amplitude_scale = 10
+    settings.map_config.simplex_step = 5
+    settings.speed = 1
 
     vertices, indices = generate_vertices(settings.map_config.shape[0], settings.map_config.shape[1])
     data = TerrainAnimationGLData()
@@ -102,10 +107,10 @@ def main():
     setup_opengl()
 
     def display():
+        glClearColor(0.75, 0.129, 0.357, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        settings.map_config.amplitude_scale += 0.1
-        settings.map_config.simplex_step = 5
-        map = generate_map(settings.map_config, settings.z_offset, 'simplex')
+
+        map = generate_map(settings.map_config, settings.z_offset, settings.generator_type)
         data.height_bo.set_data(1, len(map.data) * sys.getsizeof(float()),
                                 struct.pack(str(len(map.data)) + "f", *map.data))
         data.draw()

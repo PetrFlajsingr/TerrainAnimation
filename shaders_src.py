@@ -25,15 +25,16 @@ varying float amplitude;
 
 void main() {
     float tmp = amplitude;
-    vec3 color = vec3(1, 0.5, 0.5);
-    if (tmp > 1.0) {
-        tmp = 1.0;
-    } else if (tmp < 0.0) {
+    vec3 color = vec3(0.514, 0.478, 0.941);
+    if (tmp < 0.0) {
         color = vec3(0.5, 0.5, 1);
         tmp = abs(tmp);
         if (tmp > 1.0) {
             tmp = 1.0;
         }
+        tmp = 1.0 - tmp;
+    } else {
+        tmp += 1.0;
     }
     color = color * tmp;
     gl_FragColor = vec4(color, 1);
@@ -58,6 +59,6 @@ void main() {
         }
     }
     color = color * tmp;
-    gl_FragColor = vec4(color, tmp);
+    gl_FragColor = vec4(color, 1);
 }
 '''
