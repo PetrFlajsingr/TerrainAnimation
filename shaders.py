@@ -5,13 +5,12 @@ def load_shader(src: str, shader_type: int) -> int:
     shader = glCreateShader(shader_type)
     glShaderSource(shader, src)
     glCompileShader(shader)
-    error = glGetShaderiv(shader, GL_COMPILE_STATUS)
-    if error != GL_TRUE:
+    gl_error = glGetShaderiv(shader, GL_COMPILE_STATUS)
+    if gl_error != GL_TRUE:
         info = glGetShaderInfoLog(shader)
         glDeleteShader(shader)
         raise Exception(info)
     return shader
-
 
 
 class Shader:
@@ -31,10 +30,10 @@ class Shader:
         glAttachShader(self.program, vs)
         glAttachShader(self.program, fs)
         glLinkProgram(self.program)
-        error = glGetProgramiv(self.program, GL_LINK_STATUS)
+        gl_error = glGetProgramiv(self.program, GL_LINK_STATUS)
         glDeleteShader(vs)
         glDeleteShader(fs)
-        if error != GL_TRUE:
+        if gl_error != GL_TRUE:
             info = glGetShaderInfoLog(self.program)
             raise Exception(info)
 
