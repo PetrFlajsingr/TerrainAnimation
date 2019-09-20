@@ -11,6 +11,7 @@ from pygame.locals import *
 from buffer_objects import *
 from shaders import *
 from shaders_src import *
+from vertices_indices import *
 
 
 class TerrainAnimationGLData:
@@ -125,55 +126,10 @@ def draw(vertices, indices):
     glEnd()
 
 
-def perspective(fov, aspect, near, far):
-    n, f = near, far
-    t = np.tan((fov * np.pi / 180) / 2) * near
-    b = - t
-    r = t * aspect
-    l = b * aspect
-    assert abs(n - f) > 0
-    return np.array((
-        ((2 * n) / (r - l), 0, 0, 0),
-        (0, (2 * n) / (t - b), 0, 0),
-        ((r + l) / (r - l), (t + b) / (t - b), (f + n) / (n - f), -1),
-        (0, 0, 2 * f * n / (n - f), 0)))
-
-
-def normalized(v):
-    norm = np.linalg.norm(v)
-    return v / norm if norm > 0 else v
-
-
-def look_at(eye, target, up):
-    zax = normalized(eye - target)
-    xax = normalized(np.cross(up, zax))
-    yax = np.cross(zax, xax)
-    x = - xax.dot(eye)
-    y = - yax.dot(eye)
-    z = - zax.dot(eye)
-    return np.array(((xax[0], yax[0], zax[0], 0),
-                     (xax[1], yax[1], zax[1], 0),
-                     (xax[2], yax[2], zax[2], 0),
-                     (x, y, z, 1)))
-
-
-def create_mvp(program_id, width, height):
-    fov, near, far = 70, 0.001, 100
-    eye = np.array((10, 2, 15))
-    target, up = np.array((10, 0, 10)), np.array((0, 1, 0))
-    projection = perspective(fov, width / height, near, far)
-    view = look_at(eye, target, up)
-    model = np.identity(4)
-    mvp = model @ view @ projection
-    print(mvp)
-    matrix_id = glGetUniformLocation(program_id, 'mvp')
-    return matrix_id, mvp.astype(np.float32)
 
 
 x_offset = 0
 speed = 0.5
-create_mvp(0, 800, 600)
-
 
 def main():
     pygame.init()
