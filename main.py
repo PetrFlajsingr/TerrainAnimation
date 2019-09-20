@@ -66,7 +66,8 @@ class TerrainAnimationGLData:
         self.height_bo.unbind()
         self.shader2.unuse()'''
 
-class MapConfig:
+
+class GenerationConfig:
     def __init__(self):
         self.shape = (30, 30)
         self.scale = 100.0
@@ -78,34 +79,12 @@ class MapConfig:
         self.simplex_step = 1.0
 
 
-class Map:
+class GenerationResult:
     def __init__(self, data):
         self.data = data
 
 
-def calculate_index(x: int, y: int, w: int) -> (int, int):
-    index1 = [x * w + y, (x + 1) * w + y, (x + 1) * w + y + 1]
-    index2 = [x * w + y, x * w + y + 1, (x + 1) * w + y + 1]
-    return index1, index2
-
-
-def generate_vertices(map_config: MapConfig):
-    vertices = []
-    indices = []
-    for i in range(map_config.shape[0]):
-        for j in range(map_config.shape[1]):
-            vertices.append(i * 0.5)
-            vertices.append(j * 0.5)
-
-    for i in range(map_config.shape[0] - 1):
-        for j in range(map_config.shape[1] - 1):
-            index1, index2 = calculate_index(i, j, map_config.shape[0])
-            indices.extend(index1)
-            indices.extend(index2)
-    return np.array(vertices), np.array(indices)
-
-
-def generate_map(map_config: MapConfig, x_offset: float, map_type: str) -> Map:
+def generate_map(map_config: GenerationConfig, x_offset: float, map_type: str) -> GenerationResult:
     if map_type == 'perlin':
         data = np.zeros(map_config.shape, dtype=np.float32)
         for i in range(map_config.shape[0]):
@@ -118,7 +97,7 @@ def generate_map(map_config: MapConfig, x_offset: float, map_type: str) -> Map:
                                            repeatx=10,
                                            repeaty=10,
                                            base=0) * map_config.amplitude_scale
-        result = Map(data.flatten())
+        result = GenerationResult(data.flatten())
     elif map_type == 'simplex':
         gen = OpenSimplex(seed=1)
         data = np.zeros(map_config.shape, dtype=np.float32)
@@ -127,12 +106,12 @@ def generate_map(map_config: MapConfig, x_offset: float, map_type: str) -> Map:
                 data[i][j] = gen.noise2d(i / map_config.scale * map_config.simplex_step,
                                          (j + x_offset) / map_config.scale * map_config.simplex_step) \
                              * map_config.amplitude_scale
-        result = Map(data.flatten())
+        result = GenerationResult(data.flatten())
 
     return result
 
 
-def apply_map_to_vertices(map_config: MapConfig, map: Map, verticies):
+def apply_map_to_vertices(map_config: GenerationConfig, map: GenerationResult, verticies):
     for i in range(map_config.shape[0]):
         for j in range(map_config.shape[1]):
             verticies[i * map_config.shape[0]][1] = map.data[i][j]
@@ -205,7 +184,7 @@ def main():
 
     glTranslatef(0.0, 0.0, -5)
 
-    map_config = MapConfig()
+    map_config = GenerationConfig()
     vertices, indices = generate_vertices(map_config)
     data = TerrainAnimationGLData()
     data.vertices = vertices
