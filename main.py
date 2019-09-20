@@ -66,8 +66,23 @@ class TerrainAnimationGLData:
         self.shader2.unuse()'''
 
 
-x_offset = 0
-speed = 0.5
+class AnimationSettings:
+    def __init__(self):
+        self.speed = 0.1
+        self.z_offset = 0
+        self.map_config = GenerationConfig()
+
+    def step_position(self):
+        self.z_offset -= self.speed
+
+
+def setup_opengl():
+    glEnable(GL_DEPTH_TEST)
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glEnable(GL_LINE_SMOOTH)
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+    glCullFace(GL_FRONT)
 
 
 def main():
@@ -77,44 +92,32 @@ def main():
 
     gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
 
-    glTranslatef(0.0, 0.0, -5)
+    settings = AnimationSettings()
 
-    map_config = GenerationConfig()
-    vertices, indices = generate_vertices(map_config.shape[0], map_config.shape[1])
+    vertices, indices = generate_vertices(settings.map_config.shape[0], settings.map_config.shape[1])
     data = TerrainAnimationGLData()
     data.vertices = vertices
     data.indices = indices
 
-    glEnable(GL_DEPTH_TEST)
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    glEnable(GL_LINE_SMOOTH)
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
-    glCullFace(GL_FRONT)
+    setup_opengl()
 
-    def disp_func():
-        global x_offset
-        global speed
-        speed += 0.005
-
+    def display():
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        map_config.amplitude_scale = 10
-        map_config.simplex_step = 5
-        map = generate_map(map_config, x_offset, 'perlin')
+        settings.map_config.amplitude_scale += 0.1
+        settings.map_config.simplex_step = 5
+        map = generate_map(settings.map_config, settings.z_offset, 'simplex')
         data.height_bo.set_data(1, len(map.data) * sys.getsizeof(float()),
                                 struct.pack(str(len(map.data)) + "f", *map.data))
         data.draw()
         glFlush()
-        x_offset -= speed
+        settings.step_position()
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-
-        glRotatef(1, 1, 1, 1)
-        disp_func()
+        display()
         pygame.display.flip()
         pygame.time.wait(1)
 

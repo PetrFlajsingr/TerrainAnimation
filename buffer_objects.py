@@ -37,6 +37,7 @@ class BO:
     def __init__(self):
         self.bo = glGenBuffers(1)
         self.component_count = 0
+        self.data_set = False
 
     def __del__(self):
         glDeleteBuffers(1, [self.bo])
