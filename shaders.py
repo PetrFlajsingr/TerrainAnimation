@@ -1,3 +1,4 @@
+from OpenGL.GL import *
 
 vertex_shader = '''
 #version 120
@@ -61,3 +62,15 @@ void main() {
     gl_FragColor = vec4(color, tmp);
 }
 '''
+
+
+def load_shader(src: str, shader_type: int) -> int:
+    shader = glCreateShader(shader_type)
+    glShaderSource(shader, src)
+    glCompileShader(shader)
+    error = glGetShaderiv(shader, GL_COMPILE_STATUS)
+    if error != GL_TRUE:
+        info = glGetShaderInfoLog(shader)
+        glDeleteShader(shader)
+        raise Exception(info)
+    return shader

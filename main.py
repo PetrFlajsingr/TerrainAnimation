@@ -1,5 +1,4 @@
 import pygame
-import pyrr as pyrr
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -8,20 +7,9 @@ import numpy as np
 import sys
 import struct
 from typing import Any
-from pyrr import Matrix44, Vector4, Vector3, Quaternion
 from opensimplex import OpenSimplex
 from shaders import *
 
-def load_shader(src: str, shader_type: int) -> int:
-    shader = glCreateShader(shader_type)
-    glShaderSource(shader, src)
-    glCompileShader(shader)
-    error = glGetShaderiv(shader, GL_COMPILE_STATUS)
-    if error != GL_TRUE:
-        info = glGetShaderInfoLog(shader)
-        glDeleteShader(shader)
-        raise Exception(info)
-    return shader
 
 
 class Shader:
