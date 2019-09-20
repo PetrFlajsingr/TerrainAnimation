@@ -22,11 +22,8 @@ class Shader:
 
     def compile(self, vs_src: str, fs_src: str):
         vs = load_shader(vs_src, GL_VERTEX_SHADER)
-        if not vs:
-            return
         fs = load_shader(fs_src, GL_FRAGMENT_SHADER)
-        if not fs:
-            return
+
         glAttachShader(self.program, vs)
         glAttachShader(self.program, fs)
         glLinkProgram(self.program)
