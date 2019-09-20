@@ -12,7 +12,8 @@ from buffer_objects import *
 from shaders import *
 from shaders_src import *
 
-class Data:
+
+class TerrainAnimationGLData:
     def __init__(self):
         self.vbo: VBO = None
         self.ibo: IBO = None
@@ -206,7 +207,7 @@ def main():
 
     map_config = MapConfig()
     vertices, indices = generate_vertices(map_config)
-    data = Data()
+    data = TerrainAnimationGLData()
     data.vertices = vertices
     data.indices = indices
 
