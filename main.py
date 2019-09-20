@@ -1,17 +1,15 @@
 import struct
 import sys
 
-import noise
-import numpy as np
 import pygame
 from OpenGL.GLU import *
-from opensimplex import OpenSimplex
 from pygame.locals import *
 
 from buffer_objects import *
 from shaders import *
 from shaders_src import *
 from vertices_indices import *
+from map_generation import *
 
 
 class TerrainAnimationGLData:
@@ -68,68 +66,9 @@ class TerrainAnimationGLData:
         self.shader2.unuse()'''
 
 
-class GenerationConfig:
-    def __init__(self):
-        self.shape = (30, 30)
-        self.scale = 100.0
-        self.octaves = 6
-        self.persistence = 0.5
-        self.lacunarity = 2.0
-        self.amplitude_scale = 1.0
-
-        self.simplex_step = 1.0
-
-
-class GenerationResult:
-    def __init__(self, data):
-        self.data = data
-
-
-def generate_map(map_config: GenerationConfig, x_offset: float, map_type: str) -> GenerationResult:
-    if map_type == 'perlin':
-        data = np.zeros(map_config.shape, dtype=np.float32)
-        for i in range(map_config.shape[0]):
-            for j in range(map_config.shape[1]):
-                data[i][j] = noise.pnoise2(i / map_config.scale,
-                                           (j + x_offset) / map_config.scale,
-                                           octaves=map_config.octaves,
-                                           persistence=map_config.persistence,
-                                           lacunarity=map_config.lacunarity,
-                                           repeatx=10,
-                                           repeaty=10,
-                                           base=0) * map_config.amplitude_scale
-        result = GenerationResult(data.flatten())
-    elif map_type == 'simplex':
-        gen = OpenSimplex(seed=1)
-        data = np.zeros(map_config.shape, dtype=np.float32)
-        for i in range(map_config.shape[0]):
-            for j in range(map_config.shape[1]):
-                data[i][j] = gen.noise2d(i / map_config.scale * map_config.simplex_step,
-                                         (j + x_offset) / map_config.scale * map_config.simplex_step) \
-                             * map_config.amplitude_scale
-        result = GenerationResult(data.flatten())
-
-    return result
-
-
-def apply_map_to_vertices(map_config: GenerationConfig, map: GenerationResult, verticies):
-    for i in range(map_config.shape[0]):
-        for j in range(map_config.shape[1]):
-            verticies[i * map_config.shape[0]][1] = map.data[i][j]
-
-
-def draw(vertices, indices):
-    glBegin(GL_TRIANGLES)
-    for index in indices:
-        for vertex in index:
-            glVertex2fv(vertices[vertex])
-    glEnd()
-
-
-
-
 x_offset = 0
 speed = 0.5
+
 
 def main():
     pygame.init()
@@ -141,7 +80,7 @@ def main():
     glTranslatef(0.0, 0.0, -5)
 
     map_config = GenerationConfig()
-    vertices, indices = generate_vertices(map_config)
+    vertices, indices = generate_vertices(map_config.shape[0], map_config.shape[1])
     data = TerrainAnimationGLData()
     data.vertices = vertices
     data.indices = indices
