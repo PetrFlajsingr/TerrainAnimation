@@ -9,12 +9,16 @@ varying float amplitude;
 //uniform mat4 mvp;
 
 void main() {
-    mat4 mvp = mat4(  1.07111101,   0.0,           0.0,           0.0,        
-  0.0,           1.32600214,  -0.3713981,   -0.37139068,
-  0.0,          -0.53040085,  -0.92849526,  -0.92847669,
--10.71111005,   5.30400854,  14.6682251,   14.66993172);
-    gl_Position = mvp * vec4(position[0], height, position[1], 1);
-    amplitude = height;
+    float h = height;
+    if (height < 0.0) {
+        h = 0.0;
+    } 
+    mat4 mvp = mat4(  1.071111,     0.,           0.,           0.,        
+  0.,           1.0098531,   -0.7071209,   -0.70710677,
+  0.,          -1.0098531,   -0.7071209,   -0.70710677,
+-10.71111,     10.098532,    14.140418,    14.142136);
+    gl_Position = mvp * vec4(position[0], h, position[1], 1);
+    amplitude = h;
 }
 '''
 

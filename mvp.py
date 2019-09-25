@@ -36,7 +36,7 @@ def look_at(eye, target, up):
 
 def create_mvp(width, height):
     fov, near, far = 70, 0.001, 100
-    eye = np.array((10, 2, 15))
+    eye = np.array((10, 5, 15))
     target, up = np.array((10, 0, 10)), np.array((0, 1, 0))
     projection = perspective(fov, width / height, near, far)
     view = look_at(eye, target, up)

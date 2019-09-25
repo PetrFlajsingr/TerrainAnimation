@@ -2,7 +2,6 @@ import struct
 import sys
 
 import pygame
-from OpenGL.GLU import *
 from pygame.locals import *
 
 from buffer_objects import *
@@ -10,6 +9,10 @@ from shaders import *
 from shaders_src import *
 from vertices_indices import *
 from map_generation import *
+from mvp import *
+
+from xmlrpc.server import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
+import threading
 
 
 class TerrainAnimationGLData:
@@ -41,7 +44,7 @@ class TerrainAnimationGLData:
         # mvp_matrix_id, mvp = create_mvp(self.shader.program, 800, 600)
         # glUniformMatrix4fv(mvp_matrix_id, 1, GL_FALSE, mvp)
 
-        '''glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         self.shader.use()
         self.vbo.set_slot(0)
         self.ibo.bind()
@@ -51,9 +54,9 @@ class TerrainAnimationGLData:
         self.ibo.unbind()
         self.vbo.unbind()
         self.height_bo.unbind()
-        self.shader.unuse()'''
+        self.shader.unuse()
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        '''glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         self.shader2.use()
         self.vbo.set_slot(0)
         self.ibo.bind()
@@ -63,7 +66,7 @@ class TerrainAnimationGLData:
         self.ibo.unbind()
         self.vbo.unbind()
         self.height_bo.unbind()
-        self.shader2.unuse()
+        self.shader2.unuse()'''
 
 
 class AnimationSettings:
@@ -76,6 +79,54 @@ class AnimationSettings:
     def step_position(self):
         self.z_offset -= self.speed
 
+    def set_generator_tyoe(self, type: str):
+        self.generator_type = type
+        return self.generator_type
+
+    def add_to_speed(self, speed: float):
+        self.speed += speed
+        return self.speed
+
+    def add_to_scale(self, scale: float):
+        self.map_config.scale += scale
+        return self.map_config.scale
+
+    def add_to_octaves(self, octaves: float):
+        self.map_config.octaves += octaves
+        return self.map_config.octaves
+
+    def add_to_persistence(self, persistence: float):
+        self.map_config.persistence += persistence
+        return self.map_config.persistence
+
+    def add_to_lacunarity(self, lacunarity: float):
+        self.map_config.lacunarity += lacunarity
+        return self.map_config.lacunarity
+
+    def add_to_amplitude_scale(self, amplitude_scale: float):
+        self.map_config.amplitude_scale += amplitude_scale
+        return self.map_config.amplitude_scale
+
+    def add_to_simplex_step(self, simplex_step: float):
+        self.map_config.simplex_step += simplex_step
+        return self.map_config.simplex_step
+
+
+class RPCController:
+    def __init__(self, animation_settings: AnimationSettings):
+        self.animation_settings = animation_settings
+
+    def run(self):
+        def serve():
+            print('Running RPC on localhost:8000')
+            with SimpleXMLRPCServer(('localhost', 8000), requestHandler=SimpleXMLRPCRequestHandler) as server:
+                server.register_introspection_functions()
+
+                server.register_instance(self.animation_settings)
+                server.serve_forever()
+        self.thread = threading.Thread(target=serve)
+        self.thread.start()
+
 
 def setup_opengl():
     glEnable(GL_DEPTH_TEST)
@@ -86,20 +137,25 @@ def setup_opengl():
     glCullFace(GL_FRONT)
 
 
+print(create_mvp(800, 600))
+
 def main():
     pygame.init()
     display = (800, 600)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
-
-    gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
+    # pygame.display.toggle_fullscreen()
 
     settings = AnimationSettings()
-    settings.map_config.shape = (30, 30)
+    settings.map_config.shape = (40, 40)
     settings.map_config.amplitude_scale = 10
     settings.map_config.simplex_step = 5
-    settings.speed = 1
+    settings.speed = 0.1
+    settings.generator_type = 'perlin'
 
-    vertices, indices = generate_vertices(settings.map_config.shape[0], settings.map_config.shape[1])
+    controller = RPCController(settings)
+    controller.run()
+
+    vertices, indices = generate_vertices((-5, -5), settings.map_config.shape, 1, 1)
     data = TerrainAnimationGLData()
     data.vertices = vertices
     data.indices = indices
